@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -29,16 +30,25 @@ target_speed_y = random.choice([-1, 1]) * random.uniform(0.1, MAX_SPEED)
 # Флаг, указывающий, началась ли игра
 game_started = False
 
+# Создаем шрифт для отображения текста
+font = pygame.font.SysFont(None, 48)
+welcome_text = font.render('Нажмите любую кнопку, чтобы начать!', True, (255, 255, 255))
+
+# Переменные для таймера и счетчика попаданий
+start_time = 0
+hits = 0
+
 running = True
 while running:
     screen.fill(color)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
             if not game_started:
-                # Начинаем игру при первом щелчке мышью
+                # Начинаем игру при первом щелчке мышью или нажатии клавиши
                 game_started = True
+                start_time = time.time()  # Запоминаем время начала игры
             else:
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 if target_x < mouse_x < target_x + target_width and target_y < mouse_y < target_y + target_height:
@@ -47,6 +57,7 @@ while running:
                     # Пересчитываем скорость после попадания
                     target_speed_x = random.choice([-1, 1]) * random.uniform(0.1, MAX_SPEED)
                     target_speed_y = random.choice([-1, 1]) * random.uniform(0.1, MAX_SPEED)
+                    hits += 1  # Увеличиваем количество попаданий
 
     if game_started:
         # Обновляем позицию мишени только после начала игры
@@ -60,6 +71,22 @@ while running:
             target_speed_y *= -1
 
         screen.blit(target_img, (target_x, target_y))
+
+        # Обновляем таймер
+        elapsed_time = int(time.time() - start_time)
+        hours = elapsed_time // 3600
+        minutes = (elapsed_time % 3600) // 60
+        seconds = elapsed_time % 60
+        timer_text = font.render(f'{hours:02}:{minutes:02}:{seconds:02}', True, (255, 255, 255))
+        screen.blit(timer_text, (10, SCREEN_HEIGHT - 40))
+
+        # Обновляем счетчик попаданий
+        hits_text = font.render(f'Попадания: {hits}', True, (255, 255, 255))
+        screen.blit(hits_text, (SCREEN_WIDTH - 250, SCREEN_HEIGHT - 40))
+    else:
+        # Отображаем приветственное сообщение, если игра еще не началась
+        text_rect = welcome_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        screen.blit(welcome_text, text_rect)
 
     pygame.display.update()
 
